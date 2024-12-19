@@ -2,19 +2,11 @@
 #include "BluetoothSerial.h"
 
 BluetoothSerial SerialBT;
-char cmd;
-
 
 float RateRoll, RatePitch, RateYaw;
 float RateCalibrationRoll, RateCalibrationPitch, RateCalibrationYaw;
 int RateCalibrationNumber, TotalCalibrations = 2000;
 int ledpin = 2;
-
-
-
-
-
-
 
 void gyro_signals(void){
   // Start the I2C communication with the gyro
@@ -30,8 +22,8 @@ void gyro_signals(void){
   Wire.write(0x1B); // Address of the register to set the sensitivity scale
   Wire.write(0x8); // The measurements of the MPU 6050 are recorded in lsb
   // Choose a sensitivity settings of 65.5 LSB/degrees/second 
-  // This corresponds to the FS_SEL setting of one
-  // https://youtu.be/yhz3bRQLvBY?list=PLeuMA6tJBPKsAfRfFuGrEljpBow5hPVD4&t=280
+  // This corresponds to the FS_SEL setting of 1
+
   Wire.endTransmission();
 
   // Import the measurement values of the gyro
@@ -90,19 +82,16 @@ void setup(){
   RateCalibrationYaw /= TotalCalibrations;
   Serial.println("Calibration Finished");
   digitalWrite(ledpin, LOW);
-
-
-
 }
 
 void loop() {
   gyro_signals();
   
-  Serial.print("Roll Rate [°/s] = ");
+  Serial.print("Roll Rate = ");
   Serial.print(RateRoll);
-  Serial.print(" Pitch Rate [°/s] = ");
+  Serial.print(" Pitch Rate = ");
   Serial.print(RatePitch);
-  Serial.print(" Yaw Rate [°/s] = ");
+  Serial.print(" Yaw Rate = ");
   Serial.println(RateYaw);
 
   SerialBT.print("Roll: ");
