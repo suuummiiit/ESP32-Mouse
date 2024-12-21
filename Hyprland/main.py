@@ -11,7 +11,7 @@ def disconnect_bluetooth(mac_address):
 
 def connect_bluetooth(mac_address):
     try:
-        server_mac_address = mac_address  # Replace with your ESP32's MAC address
+        server_mac_address = mac_address
         port = 1
 
         sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -20,12 +20,11 @@ def connect_bluetooth(mac_address):
 
         return sock
     except bluetooth.btcommon.BluetoothError as e:
-        # print(f"Bluetooth error: {e}")
+        print(f"Bluetooth error: {e}")
         print("Disconnecting from ESP32...")
         disconnect_bluetooth(mac_address)
         print("Reconnecting to ESP32...")
         connect_bluetooth(mac_address)
-        # return None
 
 
 def receive_data(sock):
@@ -37,14 +36,8 @@ def receive_data(sock):
         print(len(values))
         if len(values) != 4:
             print("Invalid data received")
-            return 0,0,0
-
-        return values;
-
-        # roll, pitch, yaw = map(float, values)
-        # roll, pitch, yaw = math.floor(roll * movment_factor), math.ceil(pitch * movment_factor), math.floor(yaw * movment_factor)
-        
-        return roll, pitch, yaw
+            return "Error"
+        return values
 
     except KeyboardInterrupt:
         print("Exiting...")
@@ -59,7 +52,7 @@ def handle_mouse_data():
 
 
 if __name__ == "__main__":
-    mac_address = "F8:B3:B7:34:51:56"
+    mac_address = "Your ESP32 Mac Address"
     sock = connect_bluetooth(mac_address)
     try:
         while True:
