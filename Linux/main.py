@@ -73,9 +73,27 @@ def move_cursor(values):
     device.emit(uinput.REL_X, x)
     device.emit(uinput.REL_Y, y)
 
+def handle_clicks(values):
+    print(values)
+    values = [v.strip() for v in values]  # Remove any leading/trailing whitespace and newlines
+
+    button = int(values[0])
+    action = int(values[1])
+
+    if button == 1:
+        device.emit(uinput.BTN_LEFT, action)
+    elif button == 2:
+        device.emit(uinput.BTN_RIGHT, action)
+
+
+    # device.emit(uinput.BTN_LEFT, 1)
+    # time.sleep(1)
+    # device.emit(uinput.BTN_LEFT, 0)
+
+
 
 if __name__ == "__main__":
-    mac_address = "Enter your ESP32 MAC ADDRESS"
+    mac_address = "F8:B3:B7:34:51:56"
     sock = connect_bluetooth(mac_address)
     try:
         while True:
@@ -84,9 +102,17 @@ if __name__ == "__main__":
             values =  data[1:]
             if id == "0":
                 if len(values) != 3: # Check for unexpected data length or data loss
-                    print("Invalid data received")
+                    print("Invalid movement data received")
                     continue
                 move_cursor(values)
+            
+            elif id == "1":
+                if len(values) != 2: # Check for unexpected data length or data loss
+                    print("Invalid click data received")
+                    print(data)
+                    print(values)
+                    continue
+                handle_clicks(values)
             
             time.sleep(0.001)
     except KeyboardInterrupt:
