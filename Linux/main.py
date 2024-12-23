@@ -85,13 +85,6 @@ def handle_clicks(values):
     elif button == 2:
         device.emit(uinput.BTN_RIGHT, action)
 
-
-    # device.emit(uinput.BTN_LEFT, 1)
-    # time.sleep(1)
-    # device.emit(uinput.BTN_LEFT, 0)
-
-
-
 if __name__ == "__main__":
     mac_address = "F8:B3:B7:34:51:56"
     sock = connect_bluetooth(mac_address)

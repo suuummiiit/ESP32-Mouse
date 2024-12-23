@@ -6,7 +6,10 @@ BluetoothSerial SerialBT;
 float RateRoll, RatePitch, RateYaw;
 float RateCalibrationRoll, RateCalibrationPitch, RateCalibrationYaw;
 int RateCalibrationNumber, TotalCalibrations = 2000;
-int ledpin = 2;
+int blueledpin = 2, redledpin = 4, greenledpin = 18, yellowledpin = 19;
+bool leftclick = false, rightclick = false;
+int moveTouch = 13, leftTouch = 12, rightTouch = 14;
+
 
 void gyro_signals(void){
   // Start the I2C communication with the gyro
@@ -49,7 +52,10 @@ void gyro_signals(void){
 void setup(){
   Serial.begin(57600);
   SerialBT.begin("Gesture");
-  pinMode(ledpin, OUTPUT);
+  pinMode(blueledpin, OUTPUT);
+  pinMode(redledpin, OUTPUT);
+  pinMode(greenledpin, OUTPUT);
+  pinMode(yellowledpin, OUTPUT);
 
   Wire.setClock(400000);
   Wire.begin();
@@ -64,13 +70,14 @@ void setup(){
   Wire.endTransmission();
 
   Serial.println("Calibrating");
-  digitalWrite(ledpin, HIGH);
+  digitalWrite(blueledpin, HIGH);
   for (RateCalibrationNumber=0; RateCalibrationNumber < TotalCalibrations; RateCalibrationNumber++)
   {
     gyro_signals();
     RateCalibrationRoll += RateRoll;
     RateCalibrationPitch += RatePitch;
     RateCalibrationYaw += RateYaw;
+    Serial.println(RateCalibrationNumber);
     delay(1);
   }
 
@@ -81,25 +88,78 @@ void setup(){
   RateCalibrationPitch /= TotalCalibrations;
   RateCalibrationYaw /= TotalCalibrations;
   Serial.println("Calibration Finished");
-  digitalWrite(ledpin, LOW);
+  digitalWrite(blueledpin, LOW);
 }
 
 void loop() {
-  gyro_signals();
-  
-  Serial.print("Roll Rate = ");
-  Serial.print(RateRoll);
-  Serial.print(" Pitch Rate = ");
-  Serial.print(RatePitch);
-  Serial.print(" Yaw Rate = ");
-  Serial.println(RateYaw);
 
-  SerialBT.print("Roll: ");
-  SerialBT.print(RateRoll);
-  SerialBT.print(", Pitch: ");
-  SerialBT.print(RatePitch);
-  SerialBT.print(", Yaw: ");
-  SerialBT.println(RateYaw);
+  int touch = 100;
+  touch = touchRead(moveTouch);
+  if (touch <= 15)
+  {
+    digitalWrite(redledpin, HIGH);
+
+    gyro_signals();
+
+    SerialBT.print("0");
+    SerialBT.print(",");
+    SerialBT.print(RateRoll);
+    SerialBT.print(",");
+    SerialBT.print(RatePitch);
+    SerialBT.print(",");
+    SerialBT.println(RateYaw);
+
+
+    int lim = 3;
+    if (abs(RateRoll) > lim || abs(RatePitch) > lim || abs(RateYaw) > lim)
+    {
+      digitalWrite(blueledpin, HIGH);
+      delay(5);
+    }
+    else
+      digitalWrite(blueledpin, LOW);
+  }
+  else
+  {
+    digitalWrite(redledpin, LOW);
+    digitalWrite(blueledpin, LOW);
+  }
+  
+  delay(10);
+
+  touch = touchRead(leftTouch);
+  if (touch <= 15 && leftclick == false)
+  {
+    leftclick = true;
+    digitalWrite(greenledpin, HIGH);
+    SerialBT.print("1,1,1"); // id = 1, left, click
+    // Serial.println("LEFT CLICK DOWN");
+  }
+  else if (touch > 15 && leftclick == true)
+    {
+      leftclick = false;
+      digitalWrite(greenledpin, LOW);
+      SerialBT.print("1,1,0"); // id = 1, left, release
+      // Serial.println("LEFT CLICK RELEASE");
+    }
+
+  touch = touchRead(rightTouch);
+  if (touch <= 15 && rightclick == false)
+  {
+    rightclick = true;
+    digitalWrite(yellowledpin, HIGH);
+    SerialBT.print("1,2,1"); // id = 1, right, click
+    // Serial.println("RIGHT CLICK DOWN");
+  }
+  else if (touch > 15 && rightclick == true)
+  {
+      rightclick = false;
+      digitalWrite(yellowledpin, LOW);
+      SerialBT.print("1,2,0"); // id = 1, right, release
+      // Serial.println("RIGHT CLICK RELEASE");
+  }
+  
+
 
   delay(50);  
 }
